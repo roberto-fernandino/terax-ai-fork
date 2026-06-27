@@ -21,6 +21,7 @@ import {
   TERMINAL_FONT_SIZES,
   TERMINAL_SCROLLBACK_PRESETS,
   setAgentNotifications,
+  setShowAgentsTab,
   setAutostart,
   setEditorWordWrap,
   setEditorAutoSave,
@@ -109,6 +110,7 @@ export function GeneralSection() {
   const terminalScrollback = usePreferencesStore((s) => s.terminalScrollback);
   const zoomLevel = usePreferencesStore((s) => s.zoomLevel);
   const agentNotifications = usePreferencesStore((s) => s.agentNotifications);
+  const showAgentsTab = usePreferencesStore((s) => s.showAgentsTab);
 
   useEffect(() => {
     let alive = true;
@@ -439,6 +441,15 @@ export function GeneralSection() {
           <Switch
             checked={agentNotifications}
             onCheckedChange={(v) => void setAgentNotifications(v)}
+          />
+        </SettingRow>
+        <SettingRow
+          title="Show Agents sidebar tab"
+          description="Display an Agents tab in the sidebar listing all active AI coding agents running in terminals."
+        >
+          <Switch
+            checked={showAgentsTab}
+            onCheckedChange={(v) => void setShowAgentsTab(v)}
           />
         </SettingRow>
       </div>

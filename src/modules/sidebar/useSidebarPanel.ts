@@ -33,10 +33,11 @@ function readSidebarWidth(): number {
   }
 }
 
-function readSidebarView(): SidebarViewId {
+function readSidebarView(showAgentsTab: boolean): SidebarViewId {
   try {
     const stored = window.localStorage.getItem(SIDEBAR_VIEW_STORAGE_KEY);
     if (stored === "explorer" || stored === "source-control") return stored;
+    if (stored === "agents" && showAgentsTab) return stored;
   } catch {
     // ignore
   }
@@ -50,13 +51,15 @@ type FocusableExplorer = {
 
 export function useSidebarPanel(
   explorerRef: RefObject<FocusableExplorer | null>,
+  showAgentsTab: boolean,
 ) {
   const sidebarRef = useRef<PanelImperativeHandle | null>(null);
   const sidebarWidthRef = useRef(readSidebarWidth());
   const sidebarWidthWriteTimerRef = useRef(0);
   const explorerReturnFocusRef = useRef<HTMLElement | null>(null);
-  const [sidebarView, setSidebarViewState] =
-    useState<SidebarViewId>(readSidebarView);
+  const [sidebarView, setSidebarViewState] = useState<SidebarViewId>(() =>
+    readSidebarView(showAgentsTab),
+  );
 
   const persistSidebarView = useCallback((view: SidebarViewId) => {
     setSidebarViewState(view);
@@ -114,6 +117,12 @@ export function useSidebarPanel(
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!showAgentsTab && sidebarView === "agents") {
+      persistSidebarView("explorer");
+    }
+  }, [showAgentsTab, sidebarView, persistSidebarView]);
 
   const toggleExplorerFocus = useCallback(() => {
     const explorer = explorerRef.current;

@@ -11,6 +11,8 @@ import { quoteShellArg } from "@/lib/shellQuote";
 import { useZoom } from "@/lib/useZoom";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { AgentNotificationsBridge, nextAttentionTarget } from "@/modules/agents";
+import { useAgentStore } from "@/modules/agents/store/agentStore";
+import { AgentsPanel } from "@/modules/agents-panel";
 import {
   AgentRunBridge,
   AiMiniWindow,
@@ -258,6 +260,21 @@ export default function App() {
     [tabs, activeSpaceId],
   );
 
+  const agentStoreSessions = useAgentStore((s) => s.sessions);
+  const agentSessions = useMemo(
+    () => Object.values(agentStoreSessions),
+    [agentStoreSessions],
+  );
+  const agentsByTabId = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const s of agentSessions) {
+      map.set(s.tabId, s.agent);
+    }
+    return map;
+  }, [agentSessions]);
+
+  const showAgentsTab = usePreferencesStore((s) => s.showAgentsTab);
+
   const {
     sidebarRef,
     sidebarWidthRef,
@@ -267,7 +284,7 @@ export default function App() {
     cycleSidebarView,
     persistSidebarWidth,
     toggleExplorerFocus,
-  } = useSidebarPanel(explorerRef);
+  } = useSidebarPanel(explorerRef, showAgentsTab);
 
   const [newEditorOpen, setNewEditorOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -1105,6 +1122,7 @@ export default function App() {
               searchTarget={searchTarget}
               searchRef={searchInlineRef}
               onOverrideLanguage={setOverrideLanguage}
+              agentsByTabId={agentsByTabId}
             />
           )}
 
@@ -1141,6 +1159,12 @@ export default function App() {
                         onRevealInTerminal={cdInNewTab}
                         onAttachToAgent={handleAttachFileToAgent}
                       />
+                    ) : sidebarView === "agents" ? (
+                      <AgentsPanel
+                        sessions={agentSessions}
+                        tabs={tabs}
+                        onSelectTab={setActiveId}
+                      />
                     ) : (
                       <SourceControlPanel
                         open
@@ -1156,6 +1180,8 @@ export default function App() {
                     activeView={sidebarView}
                     onSelectView={persistSidebarView}
                     changedCount={sourceControl.changedCount}
+                    showAgentsTab={showAgentsTab}
+                    agentCount={agentSessions.length}
                   />
                 </div>
               </ResizablePanel>
