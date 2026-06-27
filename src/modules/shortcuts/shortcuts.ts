@@ -38,6 +38,7 @@ export type ShortcutId =
   | "ai.toggle"
   | "ai.toggleMini"
   | "ai.askSelection"
+  | "agent.focusAttention"
   | "settings.open"
   | "sidebar.toggle"
   | "sidebar.files"
@@ -259,7 +260,13 @@ export const SHORTCUTS: Shortcut[] = [
     label: "Show Files sidebar",
     group: "View",
     defaultBindings: [{ [MOD_PROP]: true, shift: true, key: "g" }],
-  },
+   },
+   {
+    id: "agent.focusAttention",
+    label: "Jump to agent needing attention",
+    group: "AI",
+    defaultBindings: [{ [MOD_PROP]: true, shift: true, key: "a" }],
+   },
   {
     id: "sidebar.toggle",
     label: "Toggle file explorer",
