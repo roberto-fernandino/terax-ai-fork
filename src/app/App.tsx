@@ -700,6 +700,7 @@ export default function App() {
       openNewBlockTab,
       openNewPrivateTab,
       openPreviewTab,
+      activeSpaceId,
       selectByIndex,
       splitActivePaneInActiveTab,
       focusNextPaneInTab,
