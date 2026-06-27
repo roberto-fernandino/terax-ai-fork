@@ -11,6 +11,13 @@ type Props = {
 };
 
 function StatusBadge({ status }: { status: AgentStatus }) {
+  if (status === "idle") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-muted/60 px-1.5 py-0.5 text-[9px] font-medium leading-none text-muted-foreground">
+        idle
+      </span>
+    );
+  }
   return (
     <span
       className={cn(

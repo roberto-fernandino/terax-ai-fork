@@ -1181,7 +1181,7 @@ export default function App() {
                     onSelectView={persistSidebarView}
                     changedCount={sourceControl.changedCount}
                     showAgentsTab={showAgentsTab}
-                    agentCount={agentSessions.length}
+                    agentCount={agentSessions.filter((s) => s.status !== "idle").length}
                   />
                 </div>
               </ResizablePanel>
