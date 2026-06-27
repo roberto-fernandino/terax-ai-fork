@@ -46,6 +46,7 @@ export type CommandPaletteActionContext = {
   openNewPreview: () => void;
   openGitGraph: () => void;
   toggleSourceControl: () => void;
+  toggleFilesExplorer: () => void;
   closeActiveTabOrPane: () => void;
   splitPaneRight: () => void;
   splitPaneDown: () => void;
@@ -237,6 +238,15 @@ export function createCommandItems(
       icon: SourceCodeIcon,
       shortcutId: "pane.source",
       run: ctx.toggleSourceControl,
+    },
+    {
+      id: "sidebar.files",
+      title: "Show Files sidebar",
+      group: "View",
+      keywords: ["files", "explorer", "sidebar", "file tree"],
+      icon: SidebarLeftIcon,
+      shortcutId: "sidebar.files",
+      run: ctx.toggleFilesExplorer,
     },
     {
       id: "search.content",

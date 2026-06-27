@@ -653,6 +653,7 @@ export default function App() {
       "pane.focusNext": () => focusNextPaneInTab(activeId, 1),
       "pane.focusPrev": () => focusNextPaneInTab(activeId, -1),
       "pane.source": toggleSourceControl,
+      "sidebar.files": () => cycleSidebarView("explorer"),
       "terminal.clear": () => {
         clearFocusedTerminal();
       },
@@ -980,6 +981,7 @@ export default function App() {
             openNewPreview: () => openPreviewTab(""),
             openGitGraph: openGitGraphFromContext,
             toggleSourceControl,
+            toggleFilesExplorer: () => cycleSidebarView("explorer"),
             closeActiveTabOrPane: handleCloseTabOrPane,
             splitPaneRight: () => splitActivePaneInActiveTab("row"),
             splitPaneDown: () => splitActivePaneInActiveTab("col"),
@@ -1016,6 +1018,7 @@ export default function App() {
       openPreviewTab,
       openGitGraphFromContext,
       toggleSourceControl,
+      cycleSidebarView,
       handleCloseTabOrPane,
       splitActivePaneInActiveTab,
       toggleSidebar,
