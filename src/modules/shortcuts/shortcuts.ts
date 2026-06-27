@@ -40,6 +40,7 @@ export type ShortcutId =
   | "ai.askSelection"
   | "settings.open"
   | "sidebar.toggle"
+  | "sidebar.files"
   | "editor.undo"
   | "editor.redo";
 
@@ -252,6 +253,12 @@ export const SHORTCUTS: Shortcut[] = [
     label: "Ask AI about selection",
     group: "AI",
     defaultBindings: [{ [MOD_PROP]: true, key: "j" }],
+  },
+  {
+    id: "sidebar.files",
+    label: "Show Files sidebar",
+    group: "View",
+    defaultBindings: [{ [MOD_PROP]: true, shift: true, key: "g" }],
   },
   {
     id: "sidebar.toggle",
