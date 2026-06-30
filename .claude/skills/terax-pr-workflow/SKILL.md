@@ -56,7 +56,23 @@ EOF
 git push origin <branch-name>
 ```
 
-### 5. Create PR on the fork (roberto-fernandino/terax-ai-fork)
+### 5. Check for existing open PRs — BEFORE creating new ones
+
+**This step is mandatory.** Before opening any PR, check whether one already exists for the same feature area:
+
+```bash
+gh pr list --repo roberto-fernandino/terax-ai-fork --state open
+gh pr list --repo crynta/terax-ai --author roberto-fernandino --state open
+```
+
+- If an open PR exists for the same feature/area → push commits to that branch and update the existing PR. Do NOT create a new one.
+- Only create a new PR if no related open PR exists.
+
+Related means: same feature, same subsystem, or a fix that belongs to an in-progress feature branch. When in doubt, add to the existing PR.
+
+### 6. Create PR on the fork (roberto-fernandino/terax-ai-fork)
+
+Only if no existing open PR covers this change:
 
 ```bash
 gh pr create \
@@ -76,9 +92,9 @@ EOF
 )"
 ```
 
-### 6. Create cross-fork PR on the upstream (crynta/terax-ai)
+### 7. Create cross-fork PR on the upstream (crynta/terax-ai)
 
-Push access is denied to upstream, so use the fork branch as head:
+Only if no existing open upstream PR covers this change. Push access is denied to upstream, so use the fork branch as head:
 
 ```bash
 gh pr create \
@@ -89,13 +105,13 @@ gh pr create \
   --body "..."
 ```
 
-### 7. Merge the fork PR
+### 8. Merge the fork PR
 
 ```bash
 gh pr merge <pr-number> --repo roberto-fernandino/terax-ai-fork --merge --auto
 ```
 
-### 8. Return to main and pull
+### 9. Return to main and pull
 
 ```bash
 git checkout main
@@ -105,8 +121,10 @@ git pull origin main
 ## Rules
 
 - ALWAYS create a branch — never commit directly to main.
-- ALWAYS open TWO PRs: one on the fork, one on the upstream (cross-fork).
+- ALWAYS check for existing open PRs before creating new ones (step 5). Push to the existing branch/PR when the change belongs to the same feature or subsystem.
+- ALWAYS open TWO PRs when creating new ones: one on the fork, one on the upstream (cross-fork).
 - ALWAYS merge the fork PR and return to main at the end.
 - NEVER push directly to upstream (no access); always use `--head roberto-fernandino:<branch>` for the upstream PR.
+- NEVER open a new PR for a fix that belongs to an existing open feature PR — add the commit to that branch instead.
 - Type-check (`npx tsc --noEmit`) before committing.
 - Use conventional commit prefixes: `feat`, `fix`, `chore`, `refactor`, `docs`.
