@@ -397,13 +397,13 @@ export default function App() {
     mruRef.current = [activeId, ...mruRef.current.filter((id) => id !== activeId)];
   }, [activeId]);
 
-  // When the user navigates to a terminal tab, reset any non-idle agent status
-  // back to idle — they are looking at the terminal so notifications are moot,
-  // and a Ctrl+C interrupt won't fire a finished signal so "working" would
-  // otherwise get stuck. If the agent is genuinely still working the backend
-  // will fire the next "working" signal and promote it back immediately.
+  // When the user NAVIGATES to a terminal tab, reset any non-idle agent status
+  // back to idle — they are looking at it so notifications are moot, and
+  // Ctrl+C won't fire a finished signal so "working" would otherwise get stuck.
+  // Uses tabsRef (not tabs) so this only fires on activeId change, not on every
+  // tab title update (which would kill real-time "working" display).
   useEffect(() => {
-    const tab = tabs.find((t) => t.id === activeId);
+    const tab = tabsRef.current.find((t) => t.id === activeId);
     if (!tab || tab.kind !== "terminal") return;
     const store = useAgentStore.getState();
     for (const s of Object.values(store.sessions)) {
@@ -411,7 +411,8 @@ export default function App() {
         store.setStatus(s.leafId, "idle");
       }
     }
-  }, [activeId, tabs]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
   useEffect(() => {
     const live = new Set(tabs.map((t) => t.id));
     mruRef.current = mruRef.current.filter((id) => live.has(id));
