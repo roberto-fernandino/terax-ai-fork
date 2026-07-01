@@ -3,11 +3,12 @@ import { displayAgent } from "@/modules/agents/lib/format";
 import type { AgentSession, AgentStatus } from "@/modules/agents/lib/types";
 import type { Tab } from "@/modules/tabs/lib/useTabs";
 import { cn } from "@/lib/utils";
+import { ProcessesSection } from "./ProcessesSection";
 
 type Props = {
   sessions: AgentSession[];
   tabs: Tab[];
-  onSelectTab: (tabId: number) => void;
+  onSelectTerminal: (tabId: number, leafId: number) => void;
 };
 
 function StatusBadge({ status }: { status: AgentStatus }) {
@@ -39,65 +40,65 @@ function tabTitleFor(tabs: Tab[], tabId: number): string | null {
   return null;
 }
 
-export function AgentsPanel({ sessions, tabs, onSelectTab }: Props) {
+export function AgentsPanel({ sessions, tabs, onSelectTerminal }: Props) {
   if (sessions.length === 0) {
     return (
-      <div className="flex h-full flex-col">
-        <PanelHeader />
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
-          <span className="text-[11.5px] text-muted-foreground">
-            No active agents.
-          </span>
-          <span className="text-[10.5px] leading-relaxed text-muted-foreground/70">
-            Start{" "}
-            <code className="rounded bg-muted/50 px-1 font-mono">claude</code>,{" "}
-            <code className="rounded bg-muted/50 px-1 font-mono">codex</code>,{" "}
-            <code className="rounded bg-muted/50 px-1 font-mono">gemini</code>,
-            or{" "}
-            <code className="rounded bg-muted/50 px-1 font-mono">opencode</code>{" "}
-            in a terminal, or use{" "}
-            <code className="rounded bg-muted/50 px-1 font-mono">
-              /claude-code
-            </code>{" "}
-            in the AI chat.
-          </span>
-        </div>
+      <div className="flex h-full min-h-0 flex-col">
+        <section className="flex min-h-0 basis-1/2 flex-col">
+          <PanelHeader />
+          <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
+            <span className="text-[11.5px] text-muted-foreground">
+              No active agents.
+            </span>
+            <span className="text-[10.5px] leading-relaxed text-muted-foreground/70">
+              Start claude, codex, gemini, or opencode in a terminal, or use{" "}
+              <code className="rounded bg-muted/50 px-1 font-mono">
+                /claude-code
+              </code>{" "}
+              in the AI chat.
+            </span>
+          </div>
+        </section>
+        <ProcessesSection tabs={tabs} onSelectTerminal={onSelectTerminal} />
       </div>
     );
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <PanelHeader count={sessions.length} />
-      <ul className="min-h-0 flex-1 overflow-y-auto p-1.5">
-        {sessions.map((s) => {
-          const tabTitle = tabTitleFor(tabs, s.tabId);
-          return (
-            <li key={s.leafId}>
-              <button
-                type="button"
-                onClick={() => onSelectTab(s.tabId)}
-                className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08]"
-              >
-                <AgentIcon agent={s.agent} size={15} className="shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="truncate text-[12px] font-medium">
-                      {displayAgent(s.agent)}
-                    </span>
-                    <StatusBadge status={s.status} />
+      <section className="flex min-h-0 basis-1/2 flex-col">
+        <PanelHeader count={sessions.length} />
+        <ul className="min-h-0 flex-1 overflow-y-auto p-1.5">
+          {sessions.map((s) => {
+            const tabTitle = tabTitleFor(tabs, s.tabId);
+            return (
+              <li key={s.leafId}>
+                <button
+                  type="button"
+                  onClick={() => onSelectTerminal(s.tabId, s.leafId)}
+                  className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-foreground/[0.05] active:bg-foreground/[0.08]"
+                >
+                  <AgentIcon agent={s.agent} size={15} className="shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-[12px] font-medium">
+                        {displayAgent(s.agent)}
+                      </span>
+                      <StatusBadge status={s.status} />
+                    </div>
+                    {tabTitle ? (
+                      <span className="block truncate text-[10.5px] text-muted-foreground">
+                        {tabTitle}
+                      </span>
+                    ) : null}
                   </div>
-                  {tabTitle ? (
-                    <span className="block truncate text-[10.5px] text-muted-foreground">
-                      {tabTitle}
-                    </span>
-                  ) : null}
-                </div>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+      <ProcessesSection tabs={tabs} onSelectTerminal={onSelectTerminal} />
     </div>
   );
 }

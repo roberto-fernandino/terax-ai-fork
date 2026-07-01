@@ -289,6 +289,19 @@ export function leafIdForPty(ptyId: number): number | null {
   return null;
 }
 
+export type LivePtySession = {
+  leafId: number;
+  ptyId: number;
+};
+
+export function livePtySessions(): LivePtySession[] {
+  const live: LivePtySession[] = [];
+  for (const [leafId, s] of sessions) {
+    if (s.pty && !s.shellExited) live.push({ leafId, ptyId: s.pty.id });
+  }
+  return live;
+}
+
 function leafBusy(s: Session): boolean {
   return s.commandRunning || (s.pty !== null && isAgentActivePty(s.pty.id));
 }

@@ -1214,7 +1214,7 @@ export default function App() {
                       <AgentsPanel
                         sessions={agentSessions}
                         tabs={tabs}
-                        onSelectTab={setActiveId}
+                        onSelectTerminal={activateAgentTarget}
                       />
                     ) : (
                       <SourceControlPanel
