@@ -32,6 +32,7 @@ import { CommandPalette, createCommandItems } from "@/modules/command-palette";
 import {
   type EditorPaneHandle,
   NewEditorDialog,
+  useApplyEditorFontSize,
   useEditorFileSync,
 } from "@/modules/editor";
 import { FileExplorer, type FileExplorerHandle } from "@/modules/explorer";
@@ -46,6 +47,7 @@ import type { PreviewPaneHandle } from "@/modules/preview";
 import { openSettingsWindow } from "@/modules/settings/openSettingsWindow";
 import { usePreferencesStore } from "@/modules/settings/preferences";
 import {
+  shouldDisablePaneSwapShortcut,
   type ShortcutHandlers,
   type ShortcutId,
   useGlobalShortcuts,
@@ -82,6 +84,7 @@ import {
   hasLeaf,
   leafIds,
   navigateFocusedBlocks,
+  type PaneBounds,
   type TerminalPaneHandle,
   useTerminalFileDrop,
   writeToSession,
@@ -137,6 +140,7 @@ export default function App() {
     setLeafCwd,
     focusPane,
     focusNextPaneInTab,
+    swapActivePaneInDirection,
     splitActivePane,
     closeActivePane,
     closePaneByLeaf,
@@ -168,6 +172,7 @@ export default function App() {
   const [blameInfo, setBlameInfo] = useState<GitBlameLineInfo | null>(null);
   const blameDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { zoomIn, zoomOut, zoomReset } = useZoom();
+  useApplyEditorFontSize();
   useTerminalFileDrop();
   const explorerRef = useRef<FileExplorerHandle>(null);
 
@@ -665,6 +670,28 @@ export default function App() {
     [activeId, splitActivePane],
   );
 
+  const livePaneBounds = useCallback((tabId: number): PaneBounds[] => {
+    const tab = document.querySelector<HTMLElement>(
+      `[data-terminal-tab="${tabId}"]`,
+    );
+    if (!tab) return [];
+    return [...tab.querySelectorAll<HTMLElement>("[data-pane-leaf]")].flatMap(
+      (element) => {
+        const id = Number(element.dataset.paneLeaf);
+        if (!Number.isFinite(id)) return [];
+        const { left, right, top, bottom } = element.getBoundingClientRect();
+        return [{ id, left, right, top, bottom }];
+      },
+    );
+  }, []);
+
+  const swapActivePane = useCallback(
+    (direction: "left" | "right" | "up" | "down") => {
+      swapActivePaneInDirection(activeId, direction, livePaneBounds(activeId));
+    },
+    [activeId, livePaneBounds, swapActivePaneInDirection],
+  );
+
   const handleCloseTabOrPane = useCallback(() => {
     const t = tabsRef.current.find((x) => x.id === activeId);
     if (t?.kind === "terminal" && leafIds(t.paneTree).length > 1) {
@@ -714,6 +741,10 @@ export default function App() {
       "pane.splitDown": () => splitActivePaneInActiveTab("col"),
       "pane.focusNext": () => focusNextPaneInTab(activeId, 1),
       "pane.focusPrev": () => focusNextPaneInTab(activeId, -1),
+      "pane.swapLeft": () => swapActivePane("left"),
+      "pane.swapRight": () => swapActivePane("right"),
+      "pane.swapUp": () => swapActivePane("up"),
+      "pane.swapDown": () => swapActivePane("down"),
       "pane.source": toggleSourceControl,
       "sidebar.files": () => cycleSidebarView("explorer"),
       "terminal.clear": () => {
@@ -723,7 +754,11 @@ export default function App() {
         window.dispatchEvent(new CustomEvent(TOGGLE_BLOCK_INPUT_EVENT)),
       "blocks.prev": () => navigateFocusedBlocks(-1),
       "blocks.next": () => navigateFocusedBlocks(1),
-      "search.focus": () => searchInlineRef.current?.focus(),
+      "search.focus": () => {
+        const editor = editorRefs.current.get(activeId);
+        if (editor) editor.openSearch();
+        else searchInlineRef.current?.focus();
+      },
       "ai.toggle": togglePanelAndFocus,
       "ai.toggleMini": () => {
         if (!hasComposer) {
@@ -746,6 +781,10 @@ export default function App() {
       "view.zenMode": () => setZenMode((v) => !v),
       "editor.undo": () => editorRefs.current.get(activeId)?.undo(),
       "editor.redo": () => editorRefs.current.get(activeId)?.redo(),
+      "editor.aiComplete": () =>
+        editorRefs.current.get(activeId)?.triggerAiComplete(),
+      "editor.codeComplete": () =>
+        editorRefs.current.get(activeId)?.triggerCodeComplete(),
     }),
     [
       activeId,
@@ -761,6 +800,7 @@ export default function App() {
       selectByIndex,
       splitActivePaneInActiveTab,
       focusNextPaneInTab,
+      swapActivePane,
       toggleSourceControl,
       hasComposer,
       togglePanelAndFocus,
@@ -777,7 +817,17 @@ export default function App() {
 
   const shortcutsDisabled = useCallback(
     (id: ShortcutId, e: KeyboardEvent) => {
-      if (id === "editor.undo" || id === "editor.redo") {
+      const terminalPaneCount =
+        activeTab?.kind === "terminal"
+          ? leafIds(activeTab.paneTree).length
+          : null;
+      if (shouldDisablePaneSwapShortcut(id, terminalPaneCount)) return true;
+      if (
+        id === "editor.undo" ||
+        id === "editor.redo" ||
+        id === "editor.aiComplete" ||
+        id === "editor.codeComplete"
+      ) {
         return activeTab?.kind !== "editor";
       }
       if (id === "ai.askSelection") {
